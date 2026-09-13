@@ -19,7 +19,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "string.h"
-
+#include <stdio.h>
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -91,18 +91,28 @@ int main(void)
   MX_GPIO_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
-  const char* msg = "Hello, World!\r\n";
-  HAL_UART_Transmit(&huart2, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY);
+
+  char buffer[64];
+  int i = 0;
+  const int N = 21; const float dt = 0.1f;
+
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-	  HAL_Delay(500);
+	  if (i<N) {
+		  float t = dt*i;
+		  float y = -0.375f * t * t * t + 1.125f * t * t;
+		  int len = snprintf(buffer, sizeof(buffer),"%.4f %.4f\r\n",t ,y);
+		  HAL_UART_Transmit(&huart2,(uint8_t*)buffer,len, HAL_MAX_DELAY);
+		  i++;
+	  }
     /* USER CODE END WHILE */
-
+	  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+	  HAL_Delay(100);
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
