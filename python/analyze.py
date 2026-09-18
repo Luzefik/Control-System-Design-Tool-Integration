@@ -50,25 +50,30 @@ def plot_displacement(t: np.ndarray, y: np.ndarray, save_path: Path) -> None:
     plt.show()
 
 
-def compute_velocity(t: np.ndarray, y: np.ndarray) -> np.ndarray:
-    """Compute velocity v(t) as the numerical derivative of displacement y(t)."""
-    dt = np.diff(t)
-    dy = np.diff(y)
-    v = dy / dt
+def numerical_derivative(t: np.ndarray, f: np.ndarray) -> np.ndarray:
+    """Чисельна похідна f(t): центральна різниця у внутрішніх точках
+    (i = 1..n-2, використовує сусідів з обох боків, похибка O(dt^2)),
+    одностороння різниця на краях (i = 0 і i = n-1, де сусід є лише
+    з одного боку, похибка O(dt))."""
+    d = np.empty_like(f, dtype=float)
+    d[0] = (f[1] - f[0]) / (t[1] - t[0])
+    d[-1] = (f[-1] - f[-2]) / (t[-1] - t[-2])
+    d[1:-1] = (f[2:] - f[:-2]) / (t[2:] - t[:-2])
+    return d
 
-    v = np.append(v, np.nan)
-    return v
+
+def compute_velocity(t: np.ndarray, y: np.ndarray) -> np.ndarray:
+    """швидкість v(t) як перша похідна переміщення y(t)."""
+    return numerical_derivative(t, y)
+
 
 def compute_acceleration(t: np.ndarray, v: np.ndarray) -> np.ndarray:
-    """Compute acceleration a(t) as the numerical derivative of velocity v(t)."""
-    dt = np.diff(t)
-    dv = np.diff(v)
-    a = dv / dt
-
-    a = np.append(a, np.nan)
-    return a
+    """прискорення a(t) як друга похідна переміщення (перша
+    похідна v(t))."""
+    return numerical_derivative(t, v)
 
 def plot_velocity(t: np.ndarray, v: np.ndarray, save_path: Path) -> None:
+    """Plot velocity v(t) and save to file."""
     fig, ax = plt.subplots(figsize=(8, 5))
     ax.plot(t, v, "o-", color="tab:orange", markersize=4)
     ax.set_xlabel("Time (s)")
@@ -80,6 +85,7 @@ def plot_velocity(t: np.ndarray, v: np.ndarray, save_path: Path) -> None:
     print(f"Saved plot: {save_path}")
     plt.show()
 def plot_acceleration(t: np.ndarray, a: np.ndarray, save_path: Path) -> None:
+    """Plot acceleration a(t) and save to file."""
     fig, ax = plt.subplots(figsize=(8, 5))
     ax.plot(t, a, "o-", color="tab:green", markersize=4)
     ax.set_xlabel("Time (s)")
@@ -101,13 +107,9 @@ def main() -> None:
     plot_displacement(t, y, OUTPUT_DIR / "displacement_plot.png")
     plot_velocity(t, compute_velocity(t, y), OUTPUT_DIR / "velocity_plot.png")
     plot_acceleration(t, compute_acceleration(t, compute_velocity(t, y)), OUTPUT_DIR / "acceleration_plot.png")
-    
 
 
 
-    # TODO (завдання):
-    # 1. Обчисліть швидкість і прискорення чисельними похідними.
-    # 2. Побудуйте графіки v(t) та a(t), збережіть як .png у цій папці.
 
 if __name__ == "__main__":
     main()
